@@ -7,6 +7,8 @@ import StoriesPage from './pages/StoriesPage';
 import SearchPage from './pages/SearchPage';
 import CreateStoryPage from './pages/CreateStoryPage';
 import AuthPage from './pages/AuthPage';
+import FavoritesPage from './pages/FavoritesPage';
+import MyStoriesPage from './pages/MyStoriesPage';
 import Footer from './components/Footer';
 
 const theme = createTheme({
@@ -71,53 +73,74 @@ function App() {
     };
 
     return (
-        <Box sx={{ 
-            display: 'flex', 
-            flexDirection: 'column',
-            minHeight: '100vh'
-        }}>
-            <AppBar position="static" sx={{ backgroundColor: 'rgba(255, 182, 193, 0.9)' }}>
-                <Toolbar>
-                    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                        StoryShare
-                    </Typography>
-                    <Button color="inherit" onClick={() => navigate('/')}>Главная</Button>
-                    <Button color="inherit" onClick={() => navigate('/stories')}>Истории</Button>
-                    <Button color="inherit" onClick={() => navigate('/search')}>Поиск</Button>
-                    {user ? (
-                        <>
-                            <Button color="inherit" onClick={() => navigate('/create')}>Создать</Button>
-                            <Button color="inherit" onClick={handleLogout}>Выйти</Button>
-                        </>
-                    ) : (
-                        <Button color="inherit" onClick={() => navigate('/auth')}>Войти</Button>
-                    )}
-                </Toolbar>
-            </AppBar>
+        <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <Box sx={{ 
+                display: 'flex', 
+                flexDirection: 'column',
+                minHeight: '100vh'
+            }}>
+                <AppBar position="static" sx={{ backgroundColor: 'rgba(255, 182, 193, 0.9)' }}>
+                    <Toolbar>
+                        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                            StoryShare
+                        </Typography>
+                        <Button color="inherit" onClick={() => navigate('/')}>Главная</Button>
+                        <Button color="inherit" onClick={() => navigate('/stories')}>Истории</Button>
+                        <Button color="inherit" onClick={() => navigate('/search')}>Поиск</Button>
+                        {user ? (
+                            <>
+                                <Button color="inherit" onClick={() => navigate('/favorites')}>Избранное</Button>
+                                <Button color="inherit" onClick={() => navigate('/my-stories')}>Мои истории</Button>
+                                <Button color="inherit" onClick={() => navigate('/create')}>Создать</Button>
+                                <Button color="inherit" onClick={handleLogout}>Выйти</Button>
+                            </>
+                        ) : (
+                            <Button color="inherit" onClick={() => navigate('/auth')}>Войти</Button>
+                        )}
+                    </Toolbar>
+                </AppBar>
 
-            <Box sx={{ flex: 1 }}>
-                <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/stories" element={<StoriesPage />} />
-                    <Route path="/story/:id" element={<StoryPage />} />
-                    <Route path="/search" element={<SearchPage />} />
-                    <Route 
-                        path="/create" 
-                        element={
-                            <PrivateRoute>
-                                <CreateStoryPage />
-                            </PrivateRoute>
-                        } 
-                    />
-                    <Route 
-                        path="/auth" 
-                        element={user ? <Navigate to="/" /> : <AuthPage />} 
-                    />
-                </Routes>
+                <Box sx={{ flex: 1 }}>
+                    <Routes>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/stories" element={<StoriesPage />} />
+                        <Route path="/story/:id" element={<StoryPage />} />
+                        <Route path="/search" element={<SearchPage />} />
+                        <Route 
+                            path="/favorites" 
+                            element={
+                                <PrivateRoute>
+                                    <FavoritesPage />
+                                </PrivateRoute>
+                            } 
+                        />
+                        <Route 
+                            path="/my-stories" 
+                            element={
+                                <PrivateRoute>
+                                    <MyStoriesPage />
+                                </PrivateRoute>
+                            } 
+                        />
+                        <Route 
+                            path="/create" 
+                            element={
+                                <PrivateRoute>
+                                    <CreateStoryPage />
+                                </PrivateRoute>
+                            } 
+                        />
+                        <Route 
+                            path="/auth" 
+                            element={user ? <Navigate to="/" /> : <AuthPage />} 
+                        />
+                    </Routes>
+                </Box>
+
+                <Footer />
             </Box>
-
-            <Footer />
-        </Box>
+        </ThemeProvider>
     );
 }
 

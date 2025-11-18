@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardActionArea, Typography, Box } from '@mui/material';
+import FavoriteButton from './FavoriteButton';
 
 const QuoteCard = ({ quote }) => {
     const navigate = useNavigate();
@@ -8,7 +9,9 @@ const QuoteCard = ({ quote }) => {
     if (!quote) return null;
     
     const handleClick = () => {
-        navigate(`/story/${quote.id}`);
+        if (quote?.id) {
+            navigate(`/story/${quote.id}`);
+        }
     };
     
     return (
@@ -21,8 +24,12 @@ const QuoteCard = ({ quote }) => {
                 },
                 border: '1px solid rgba(255, 182, 193, 0.3)',
                 backgroundColor: 'rgba(255, 240, 245, 0.5)',
+                position: 'relative',
             }}
         >
+            <Box sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}>
+                <FavoriteButton storyId={quote?.id} />
+            </Box>
             <CardActionArea onClick={handleClick}>
                 <CardContent>
                     <Typography 
@@ -34,7 +41,7 @@ const QuoteCard = ({ quote }) => {
                             fontWeight: 'bold',
                         }}
                     >
-                        {quote.title}
+                        {quote?.title || ''}
                     </Typography>
                     <Typography 
                         variant="body1" 
@@ -44,14 +51,14 @@ const QuoteCard = ({ quote }) => {
                             mb: 2,
                         }}
                     >
-                        "{quote.content}"
+                        "{quote?.content || ''}"
                     </Typography>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Typography variant="caption" color="primary.main">
                             Автор ID: {quote.authorId}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                            {new Date(quote.createdAt).toLocaleString()}
+                            {(() => { const d = quote?.createdAt ? new Date(quote.createdAt) : null; return d && !isNaN(d) ? d.toLocaleString() : ''; })()}
                         </Typography>
                     </Box>
                 </CardContent>

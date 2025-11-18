@@ -40,10 +40,12 @@ const StoriesPage = () => {
         loadStories();
     }, []);
 
-    const filteredStories = stories.filter(story => 
-        story.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        story.content.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredStories = stories.filter(story => {
+        const title = (story && story.title) ? String(story.title) : '';
+        const content = (story && story.content) ? String(story.content) : '';
+        const q = searchQuery ? searchQuery.toLowerCase() : '';
+        return title.toLowerCase().includes(q) || content.toLowerCase().includes(q);
+    });
 
     if (loading) {
         return (
@@ -96,8 +98,8 @@ const StoriesPage = () => {
                     </Typography>
                 ) : (
                     <Grid container spacing={3}>
-                        {filteredStories.map((story) => (
-                            <Grid item xs={12} md={6} key={story.id}>
+                        {filteredStories.map((story, idx) => (
+                            <Grid item xs={12} md={6} key={story?.id ?? idx}>
                                 <Card 
                                     sx={{ 
                                         transition: 'transform 0.2s, box-shadow 0.2s',
@@ -109,7 +111,7 @@ const StoriesPage = () => {
                                         backgroundColor: 'rgba(255, 240, 245, 0.5)',
                                     }}
                                 >
-                                    <CardActionArea onClick={() => navigate(`/story/${story.id}`)}>
+                                    <CardActionArea onClick={() => story?.id && navigate(`/story/${story.id}`)}>
                                         <CardContent>
                                             <Typography 
                                                 variant="h6" 
@@ -120,7 +122,7 @@ const StoriesPage = () => {
                                                     fontWeight: 'bold',
                                                 }}
                                             >
-                                                {story.title}
+                                                {story?.title || ''}
                                             </Typography>
                                             <Typography 
                                                 variant="body2" 
@@ -133,14 +135,17 @@ const StoriesPage = () => {
                                                     WebkitBoxOrient: 'vertical',
                                                 }}
                                             >
-                                                {story.content}
+                                                {story?.content || ''}
                                             </Typography>
                                             <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
                                                 <Typography variant="caption" color="primary.main">
-                                                    Автор ID: {story.authorId}
+                                                    Автор ID: {story?.authorId ?? '—'}
                                                 </Typography>
                                                 <Typography variant="caption" color="text.secondary">
-                                                    {new Date(story.createdAt).toLocaleString()}
+                                                    {(() => {
+                                                        const d = story?.createdAt ? new Date(story.createdAt) : null;
+                                                        return d && !isNaN(d) ? d.toLocaleString() : '';
+                                                    })()}
                                                 </Typography>
                                             </Box>
                                         </CardContent>

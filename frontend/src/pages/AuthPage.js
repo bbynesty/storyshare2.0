@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
     Container,
     Box,
@@ -9,8 +8,7 @@ import {
     Paper,
     Tab,
     Tabs,
-    Alert,
-    CircularProgress
+    Alert
 } from '@mui/material';
 import { login, register } from '../api';
 
@@ -23,7 +21,6 @@ function AuthPage() {
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
 
     const handleTabChange = (event, newValue) => {
         setActiveTab(newValue);
@@ -44,28 +41,31 @@ function AuthPage() {
         setLoading(true);
 
         try {
+            let response;
             if (activeTab === 0) {
                 // Вход
-                const response = await login({
+                response = await login({
                     email: formData.email,
                     password: formData.password
                 });
-                localStorage.setItem('token', response.token);
-                localStorage.setItem('user', JSON.stringify(response.user));
             } else {
                 // Регистрация
-                const response = await register({
+                response = await register({
                     username: formData.username,
                     email: formData.email,
                     password: formData.password
                 });
-                localStorage.setItem('token', response.token);
-                localStorage.setItem('user', JSON.stringify(response.user));
             }
-            navigate('/');
+            localStorage.setItem('token', response.token);
+            localStorage.setItem('user', JSON.stringify(response.user));
+            // Отправляем событие обновления пользователя
+            window.dispatchEvent(new Event('userUpdated'));
+            // Полная перезагрузка
+            window.location.href = '/';
         } catch (error) {
             console.error('Auth error:', error);
-            setError(error.message);
+            const errorMessage = error.message || (activeTab === 0 ? 'Неправильный email или пароль' : 'Не удалось зарегистрироваться');
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -144,11 +144,7 @@ function AuthPage() {
                             sx={{ mt: 3, mb: 2 }}
                             disabled={loading}
                         >
-                            {loading ? (
-                                <CircularProgress size={24} color="inherit" />
-                            ) : (
-                                activeTab === 0 ? 'Войти' : 'Зарегистрироваться'
-                            )}
+                            {loading ? 'Загрузка...' : (activeTab === 0 ? 'Войти' : 'Зарегистрироваться')}
                         </Button>
                     </form>
                 </Paper>
@@ -157,4 +153,4 @@ function AuthPage() {
     );
 }
 
-export default AuthPage; 
+export default AuthPage;

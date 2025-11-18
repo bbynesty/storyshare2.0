@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Typography, Container, Paper, Button, CircularProgress } from '@mui/material';
 import { fetchStory } from '../api';
+import CommentsSection from '../components/CommentsSection';
+import FavoriteButton from '../components/FavoriteButton';
 
 const StoryPage = () => {
     const { id } = useParams();
@@ -16,7 +18,7 @@ const StoryPage = () => {
                 setLoading(true);
                 setError(null);
                 const data = await fetchStory(id);
-                setStory(data);
+                setStory(data || null);
             } catch (err) {
                 setError('Не удалось загрузить историю');
                 console.error('Error loading story:', err);
@@ -66,18 +68,21 @@ const StoryPage = () => {
         <Container maxWidth="md">
             <Box sx={{ mt: 4 }}>
                 <Paper elevation={3} sx={{ p: 4 }}>
-                    <Typography variant="h4" component="h1" gutterBottom>
-                        {story.title}
-                    </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                        <Typography variant="h4" component="h1" sx={{ flex: 1 }}>
+                            {story?.title || ''}
+                        </Typography>
+                        <FavoriteButton storyId={story?.id} />
+                    </Box>
                     <Typography variant="body1" paragraph sx={{ whiteSpace: 'pre-wrap' }}>
-                        {story.content}
+                        {story?.content || ''}
                     </Typography>
                     <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="caption" color="text.secondary">
                             Автор ID: {story.authorId}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                            Создано: {new Date(story.createdAt).toLocaleString()}
+                            Создано: {(() => { const d = story?.createdAt ? new Date(story.createdAt) : null; return d && !isNaN(d) ? d.toLocaleString() : ''; })()}
                         </Typography>
                     </Box>
                     <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
@@ -86,6 +91,8 @@ const StoryPage = () => {
                         </Button>
                     </Box>
                 </Paper>
+
+                <CommentsSection storyId={story?.id} />
             </Box>
         </Container>
     );

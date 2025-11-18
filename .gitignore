@@ -1,35 +1,92 @@
 # Dependencies
 node_modules/
-/.pnp
-.pnp.js
+frontend/node_modules/
+**/node_modules/
 
-# Testing
-/coverage
+# Build outputs
+backend/build/
+backend/build_new/
+**/build/
+**/build_new/
+*.exe
+*.dll
+*.pdb
+*.obj
+*.ilk
+*.tlog
+*.lastbuildstate
 
-# Production
-/build
-/frontend/build
-/backend/build
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+*.vcxproj
+*.vcxproj.filters
+*.sln
+*.user
+**/CMakeFiles/
+**/CMakeCache.txt
 
-# Misc
+# IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# React build
+frontend/build/
+frontend/.pnp
+frontend/.pnp.js
 
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
+# Testing
+coverage/
 
-# CMake
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
-Makefile 
+# Temporary files
+*.tmp
+*.temp
+*Текстовый документ.txt
+
+# Copy/backup directories
+mysitecopy/
+**/mysitecopy/
+
+# Windows system directories (ignore everything outside project)
+AppData/
+Application Data/
+Cookies/
+Local Settings/
+NetHood/
+PrintHood/
+Recent/
+SendTo/
+Documents/Мои видеозаписи/
+Documents/мои рисунки/
+Documents/Моя музыка/
+Documents/Мои документы/
+главное меню/
+Шаблоны/
+
+# Ignore everything in parent directories
+../*
+!../
+

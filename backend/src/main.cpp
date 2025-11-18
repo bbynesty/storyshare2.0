@@ -3,8 +3,12 @@
 #include "crow.h"
 #include "models/Story.h"
 #include "models/User.h"
+#include "models/Comment.h"
+#include "models/Favorite.h"
 #include "services/StoryService.h"
 #include "services/UserService.h"
+#include "services/CommentService.h"
+#include "services/FavoriteService.h"
 #include <iostream>
 #include <vector>
 #include <string>
@@ -20,6 +24,8 @@
 // Глобальные сервисы
 std::unique_ptr<StoryService> storyService;
 std::unique_ptr<UserService> userService;
+std::unique_ptr<CommentService> commentService;
+std::unique_ptr<FavoriteService> favoriteService;
 
 // Временное хранилище историй (в реальном приложении здесь будет база данных)
 std::vector<Story> stories;
@@ -51,68 +57,111 @@ std::string getCurrentTime() {
 
 // Функция для генерации случайной цитаты
 Story getRandomQuote() {
-    auto stories = storyService->getAllStories();
-    if (stories.empty()) {
-        Story emptyStory;
-        emptyStory.id = 0;
-        emptyStory.title = "Нет доступных историй";
-        emptyStory.content = "Пока нет доступных историй. Будьте первым, кто поделится своей историей!";
-        emptyStory.authorId = 0;
-        emptyStory.createdAt = getCurrentTime();
-        emptyStory.updatedAt = emptyStory.createdAt;
-        return emptyStory;
-    }
+    static Story lastSuccessfulQuote;  // Сохраняем последнюю успешную цитату
+    static bool hasLastQuote = false;  // Флаг наличия последней цитаты
 
-    // Выбираем случайную историю
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(0, stories.size() - 1);
-    auto story = stories[dis(gen)];
-
-    // Разбиваем текст на предложения
-    std::vector<std::string> sentences;
-    std::string current;
-    for (char c : story.content) {
-        current += c;
-        if (c == '.' || c == '!' || c == '?') {
-            // Убираем лишние пробелы
-            current = current.substr(current.find_first_not_of(" \t\n\r"));
-            current = current.substr(0, current.find_last_not_of(" \t\n\r") + 1);
-            if (!current.empty()) {
-                sentences.push_back(current);
+    try {
+        auto stories = storyService->getAllStories();
+        if (stories.empty()) {
+            if (hasLastQuote) {
+                return lastSuccessfulQuote;  // Возвращаем последнюю успешную цитату
             }
-            current.clear();
+            Story emptyStory;
+            emptyStory.id = 1;  // Используем ID 1 вместо 0
+            emptyStory.title = "Нет доступных историй";
+            emptyStory.content = "Пока нет доступных историй. Будьте первым, кто поделится своей историей!";
+            emptyStory.authorId = 1;
+            emptyStory.createdAt = getCurrentTime();
+            emptyStory.updatedAt = emptyStory.createdAt;
+            return emptyStory;
         }
-    }
-    
-    // Добавляем последнее предложение, если оно есть
-    if (!current.empty()) {
-        current = current.substr(current.find_first_not_of(" \t\n\r"));
-        current = current.substr(0, current.find_last_not_of(" \t\n\r") + 1);
+
+        // Выбираем случайную историю
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dis(0, stories.size() - 1);
+        auto story = stories[dis(gen)];
+
+        // Проверяем, что история не пустая
+        if (story.content.empty()) {
+            if (hasLastQuote) {
+                return lastSuccessfulQuote;
+            }
+            return story;
+        }
+
+        // Разбиваем текст на предложения
+        std::vector<std::string> sentences;
+        std::string current;
+        
+        for (size_t i = 0; i < story.content.length(); i++) {
+            char c = story.content[i];
+            current += c;
+            
+            if (c == '.' || c == '!' || c == '?') {
+                // Убираем лишние пробелы
+                std::string trimmed = current;
+                trimmed = trimmed.substr(trimmed.find_first_not_of(" \t\n\r"));
+                trimmed = trimmed.substr(0, trimmed.find_last_not_of(" \t\n\r") + 1);
+                
+                if (!trimmed.empty()) {
+                    sentences.push_back(trimmed);
+                }
+                current.clear();
+            }
+        }
+
+        // Добавляем последнее предложение, если оно есть
         if (!current.empty()) {
-            sentences.push_back(current);
+            std::string trimmed = current;
+            trimmed = trimmed.substr(trimmed.find_first_not_of(" \t\n\r"));
+            trimmed = trimmed.substr(0, trimmed.find_last_not_of(" \t\n\r") + 1);
+            if (!trimmed.empty()) {
+                sentences.push_back(trimmed);
+            }
         }
+
+        // Если нет предложений, возвращаем всю историю
+        if (sentences.empty()) {
+            if (hasLastQuote) {
+                return lastSuccessfulQuote;
+            }
+            return story;
+        }
+
+        // Выбираем случайное предложение
+        std::uniform_int_distribution<> sentence_dis(0, sentences.size() - 1);
+        std::string quote = sentences[sentence_dis(gen)];
+
+        // Создаем новую историю с одним предложением
+        Story quoteStory;
+        quoteStory.id = story.id;
+        quoteStory.title = story.title;
+        quoteStory.content = quote;
+        quoteStory.authorId = story.authorId;
+        quoteStory.createdAt = story.createdAt;
+        quoteStory.updatedAt = story.updatedAt;
+
+        // Сохраняем успешную цитату
+        lastSuccessfulQuote = quoteStory;
+        hasLastQuote = true;
+
+        return quoteStory;
+    } catch (const std::exception& e) {
+        // В случае ошибки возвращаем последнюю успешную цитату или создаем новую
+        if (hasLastQuote) {
+            return lastSuccessfulQuote;
+        }
+        
+        Story errorStory;
+        errorStory.id = 1;  // Используем ID 1 вместо 0
+        errorStory.title = "Ошибка";
+        errorStory.content = "Произошла ошибка при получении цитаты. Попробуйте еще раз.";
+        errorStory.authorId = 1;
+        errorStory.createdAt = getCurrentTime();
+        errorStory.updatedAt = errorStory.createdAt;
+        return errorStory;
     }
-
-    // Если нет предложений, возвращаем всю историю
-    if (sentences.empty()) {
-        return story;
-    }
-
-    // Выбираем случайное предложение
-    std::uniform_int_distribution<> sentence_dis(0, sentences.size() - 1);
-    std::string quote = sentences[sentence_dis(gen)];
-
-    // Создаем новую историю с одним предложением
-    Story quoteStory;
-    quoteStory.id = story.id;
-    quoteStory.title = story.title;
-    quoteStory.content = quote;
-    quoteStory.authorId = story.authorId;
-    quoteStory.createdAt = story.createdAt;
-    quoteStory.updatedAt = story.updatedAt;
-
-    return quoteStory;
 }
 
 // Middleware для CORS
@@ -150,6 +199,8 @@ int main() {
         // Инициализация сервисов
         storyService = std::make_unique<StoryService>();
         userService = std::make_unique<UserService>();
+        commentService = std::make_unique<CommentService>();
+        favoriteService = std::make_unique<FavoriteService>();
 
         // Создание приложения Crow с CORS middleware
         crow::App<CORSMiddleware> app;
@@ -177,19 +228,17 @@ int main() {
                 }
 
                 // Проверяем, не существует ли уже пользователь с таким email
-                auto users = userService->getAllUsers();
-                for (const auto& user : users) {
-                    if (user.email == x["email"].s()) {
-                        res.code = 400;
-                        res.write("{\"error\": \"User with this email already exists\"}");
-                        return res;
-                    }
+                if (auto existing = userService->getUserByEmail(x["email"].s()); existing.has_value()) {
+                    res.code = 400;
+                    res.write("{\"error\": \"User with this email already exists\"}");
+                    return res;
                 }
 
                 // Создаем нового пользователя
                 User user;
                 user.username = x["username"].s();
                 user.email = x["email"].s();
+                user.password = x["password"].s();
                 user.createdAt = getCurrentTime();
                 user.updatedAt = user.createdAt;
 
@@ -234,21 +283,25 @@ int main() {
                 }
 
                 // Ищем пользователя по email
-                auto users = userService->getAllUsers();
-                for (const auto& user : users) {
-                    if (user.email == x["email"].s()) {
-                        // В реальном приложении здесь будет проверка пароля
-                        // Генерируем токен
-                        std::string token = "token_" + std::to_string(user.id);
-                        userTokens[token] = user.id;
-
-                        // Возвращаем данные пользователя и токен
-                        crow::json::wvalue response;
-                        response["user"] = user.toJson();
-                        response["token"] = token;
-                        res.write(response.dump());
+                auto found = userService->getUserByEmail(x["email"].s());
+                if (found.has_value()) {
+                    // Проверяем пароль (в проде — сравнение хеша)
+                    if (found->password != x["password"].s()) {
+                        res.code = 401;
+                        res.write("{\"error\": \"Invalid email or password\"}");
                         return res;
                     }
+
+                    // Генерируем токен
+                    std::string token = "token_" + std::to_string(found->id);
+                    userTokens[token] = found->id;
+
+                    // Возвращаем данные пользователя и токен
+                    crow::json::wvalue response;
+                    response["user"] = found->toJson();
+                    response["token"] = token;
+                    res.write(response.dump());
+                    return res;
                 }
 
                 // Если пользователь не найден
@@ -353,11 +406,20 @@ int main() {
                     return res;
                 }
 
+                // Получаем существующую историю для сохранения createdAt
+                auto existingStory = storyService->getStoryById(id);
+                if (!existingStory) {
+                    res.code = 404;
+                    res.write("{\"error\": \"Story not found\"}");
+                    return res;
+                }
+
                 Story story;
                 story.id = id;
                 story.title = x["title"].s();
                 story.content = x["content"].s();
                 story.authorId = x["authorId"].i();
+                story.createdAt = existingStory->createdAt; // Сохраняем оригинальную дату создания
                 story.updatedAt = getCurrentTime();
 
                 auto updatedStory = storyService->updateStory(story);
@@ -506,7 +568,7 @@ int main() {
         });
 
         // Добавляем тестовые данные
-        /*
+        {
         Story testStory1;
         testStory1.title = "Первая история";
         testStory1.content = "Это первая тестовая история. Она содержит несколько предложений. Каждое предложение заканчивается точкой.";
@@ -529,7 +591,7 @@ int main() {
         testUser.createdAt = getCurrentTime();
         testUser.updatedAt = testUser.createdAt;
         userService->createUser(testUser);
-        */
+        }
 
         // Поиск историй
         CROW_ROUTE(app, "/api/stories/search")
@@ -561,6 +623,177 @@ int main() {
             }
 
             return crow::response(200, response);
+        });
+
+        // Получение историй пользователя
+        CROW_ROUTE(app, "/api/users/<int>/stories")
+        .methods("GET"_method)
+        ([&](const crow::request&, int userId) {
+            crow::response res;
+            res.set_header("Content-Type", "application/json");
+            
+            auto allStories = storyService->getAllStories();
+            std::vector<Story> userStories;
+            
+            for (const auto& story : allStories) {
+                if (story.authorId == userId) {
+                    userStories.push_back(story);
+                }
+            }
+            
+            crow::json::wvalue response;
+            response["stories"] = crow::json::wvalue::list();
+            for (size_t i = 0; i < userStories.size(); i++) {
+                response["stories"][i] = userStories[i].toJson();
+            }
+            res.write(response.dump());
+            return res;
+        });
+
+        // === КОММЕНТАРИИ ===
+        
+        // Получение комментариев к истории
+        CROW_ROUTE(app, "/api/stories/<int>/comments")
+        .methods("GET"_method)
+        ([&](const crow::request&, int storyId) {
+            crow::response res;
+            res.set_header("Content-Type", "application/json");
+            
+            auto comments = commentService->getCommentsByStoryId(storyId);
+            crow::json::wvalue response;
+            response["comments"] = crow::json::wvalue::list();
+            for (size_t i = 0; i < comments.size(); i++) {
+                response["comments"][i] = comments[i].toJson();
+            }
+            res.write(response.dump());
+            return res;
+        });
+
+        // Создание комментария
+        CROW_ROUTE(app, "/api/stories/<int>/comments")
+        .methods("POST"_method)
+        ([&](const crow::request& req, int storyId) {
+            crow::response res;
+            res.set_header("Content-Type", "application/json");
+            
+            try {
+                auto x = crow::json::load(req.body);
+                if (!x) {
+                    res.code = 400;
+                    res.write("{\"error\": \"Invalid JSON\"}");
+                    return res;
+                }
+
+                Comment comment;
+                comment.storyId = storyId;
+                comment.userId = x["userId"].i();
+                comment.content = x["content"].s();
+                comment.createdAt = getCurrentTime();
+                comment.updatedAt = comment.createdAt;
+
+                auto createdComment = commentService->createComment(comment);
+                res.write(createdComment.toJson().dump());
+            } catch (const std::exception& e) {
+                res.code = 500;
+                res.write("{\"error\": \"" + std::string(e.what()) + "\"}");
+            }
+            return res;
+        });
+
+        // === ИЗБРАННОЕ ===
+        
+        // Получение избранных историй пользователя
+        CROW_ROUTE(app, "/api/users/<int>/favorites")
+        .methods("GET"_method)
+        ([&](const crow::request&, int userId) {
+            crow::response res;
+            res.set_header("Content-Type", "application/json");
+            
+            auto favorites = favoriteService->getFavoritesByUserId(userId);
+            crow::json::wvalue response;
+            response["favorites"] = crow::json::wvalue::list();
+            for (size_t i = 0; i < favorites.size(); i++) {
+                response["favorites"][i] = favorites[i].toJson();
+            }
+            res.write(response.dump());
+            return res;
+        });
+
+        // Добавление в избранное
+        CROW_ROUTE(app, "/api/stories/<int>/favorite")
+        .methods("POST"_method)
+        ([&](const crow::request& req, int storyId) {
+            crow::response res;
+            res.set_header("Content-Type", "application/json");
+            
+            try {
+                auto x = crow::json::load(req.body);
+                if (!x) {
+                    res.code = 400;
+                    res.write("{\"error\": \"Invalid JSON\"}");
+                    return res;
+                }
+
+                int userId = x["userId"].i();
+                
+                // Проверяем, не добавлена ли уже история в избранное
+                if (favoriteService->isFavorite(userId, storyId)) {
+                    res.code = 400;
+                    res.write("{\"error\": \"Story already in favorites\"}");
+                    return res;
+                }
+
+                auto favorite = favoriteService->addToFavorites(userId, storyId);
+                res.write(favorite.toJson().dump());
+            } catch (const std::exception& e) {
+                res.code = 500;
+                res.write("{\"error\": \"" + std::string(e.what()) + "\"}");
+            }
+            return res;
+        });
+
+        // Удаление из избранного
+        CROW_ROUTE(app, "/api/stories/<int>/favorite")
+        .methods("DELETE"_method)
+        ([&](const crow::request& req, int storyId) {
+            crow::response res;
+            res.set_header("Content-Type", "application/json");
+            
+            try {
+                auto x = crow::json::load(req.body);
+                if (!x) {
+                    res.code = 400;
+                    res.write("{\"error\": \"Invalid JSON\"}");
+                    return res;
+                }
+
+                int userId = x["userId"].i();
+                
+                if (favoriteService->removeFromFavorites(userId, storyId)) {
+                    res.write("{\"message\": \"Removed from favorites\"}");
+                } else {
+                    res.code = 404;
+                    res.write("{\"error\": \"Favorite not found\"}");
+                }
+            } catch (const std::exception& e) {
+                res.code = 500;
+                res.write("{\"error\": \"" + std::string(e.what()) + "\"}");
+            }
+            return res;
+        });
+
+        // Проверка, добавлена ли история в избранное
+        CROW_ROUTE(app, "/api/stories/<int>/favorite/<int>")
+        .methods("GET"_method)
+        ([&](const crow::request&, int storyId, int userId) {
+            crow::response res;
+            res.set_header("Content-Type", "application/json");
+            
+            bool isFav = favoriteService->isFavorite(userId, storyId);
+            crow::json::wvalue response;
+            response["isFavorite"] = isFav;
+            res.write(response.dump());
+            return res;
         });
 
         // Запуск сервера

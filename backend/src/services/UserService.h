@@ -45,6 +45,13 @@ public:
         return newUser;
     }
 
+    // Поиск пользователя по email
+    std::optional<User> getUserByEmail(const std::string& email) const {
+        auto it = std::find_if(users.begin(), users.end(),
+            [&email](const User& u) { return u.email == email; });
+        return it != users.end() ? std::optional<User>(*it) : std::nullopt;
+    }
+
     // Обновление пользователя
     std::optional<User> updateUser(const User& user) {
         auto it = std::find_if(users.begin(), users.end(),

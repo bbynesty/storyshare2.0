@@ -104,8 +104,8 @@ const SearchPage = () => {
 
                 {!loading && !error && stories.length > 0 && (
                     <Grid container spacing={3}>
-                        {stories.map((story) => (
-                            <Grid item xs={12} md={6} key={story.id}>
+                        {stories.map((story, idx) => (
+                            <Grid item xs={12} md={6} key={story?.id ?? idx}>
                                 <Card 
                                     sx={{ 
                                         transition: 'transform 0.2s, box-shadow 0.2s',

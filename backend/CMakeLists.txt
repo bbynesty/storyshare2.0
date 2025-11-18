@@ -79,6 +79,8 @@ set(SOURCES
     src/models/User.cpp
     src/services/StoryService.cpp
     src/services/UserService.cpp
+    src/services/CommentService.cpp
+    src/services/FavoriteService.cpp
 )
 
 # Создание исполняемого файла

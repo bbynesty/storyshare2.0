@@ -17,10 +17,24 @@ export async function login(credentials) {
             },
             body: JSON.stringify(credentials),
         });
-        return handleResponse(response);
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            if (response.status === 401) {
+                throw new Error('Неверный email или пароль');
+            }
+            const errorMsg = errorData.error || `HTTP error! status: ${response.status}`;
+            throw new Error(errorMsg);
+        }
+        
+        return await response.json();
     } catch (error) {
         console.error('Login error:', error);
-        throw new Error('Не удалось войти. Проверьте email и пароль.');
+        // Если ошибка уже имеет сообщение, используем его, иначе общее
+        if (error.message && !error.message.includes('Failed to fetch')) {
+            throw error;
+        }
+        throw new Error('Не удалось войти. Проверьте подключение к серверу.');
     }
 }
 
@@ -33,10 +47,21 @@ export async function register(credentials) {
             },
             body: JSON.stringify(credentials),
         });
-        return handleResponse(response);
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            const errorMsg = errorData.error || `HTTP error! status: ${response.status}`;
+            throw new Error(errorMsg);
+        }
+        
+        return await response.json();
     } catch (error) {
         console.error('Registration error:', error);
-        throw new Error('Не удалось зарегистрироваться. Возможно, пользователь с таким email уже существует.');
+        // Если ошибка уже имеет сообщение, используем его, иначе общее
+        if (error.message && !error.message.includes('Failed to fetch')) {
+            throw error;
+        }
+        throw new Error('Не удалось зарегистрироваться. Проверьте подключение к серверу.');
     }
 }
 
@@ -76,4 +101,119 @@ export const createStory = async (storyData) => {
         body: JSON.stringify(storyData),
     });
     return handleResponse(response);
+};
+
+// === КОММЕНТАРИИ ===
+
+export const fetchComments = async (storyId) => {
+    const response = await fetch(`${API_BASE_URL}/api/stories/${storyId}/comments`);
+    return handleResponse(response);
+};
+
+export const createComment = async (storyId, commentData) => {
+    const response = await fetch(`${API_BASE_URL}/api/stories/${storyId}/comments`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(commentData),
+    });
+    return handleResponse(response);
+};
+
+// === ИЗБРАННОЕ ===
+
+export const fetchUserFavorites = async (userId) => {
+    const response = await fetch(`${API_BASE_URL}/api/users/${userId}/favorites`);
+    return handleResponse(response);
+};
+
+export const addToFavorites = async (storyId, userId) => {
+    const response = await fetch(`${API_BASE_URL}/api/stories/${storyId}/favorite`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
+    });
+    return handleResponse(response);
+};
+
+export const removeFromFavorites = async (storyId, userId) => {
+    const response = await fetch(`${API_BASE_URL}/api/stories/${storyId}/favorite`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
+    });
+    return handleResponse(response);
+};
+
+export const checkFavorite = async (storyId, userId) => {
+    const response = await fetch(`${API_BASE_URL}/api/stories/${storyId}/favorite/${userId}`);
+    return handleResponse(response);
+};
+
+// === МОИ ИСТОРИИ ===
+
+export const fetchUserStories = async (userId) => {
+    const response = await fetch(`${API_BASE_URL}/api/users/${userId}/stories`);
+    return handleResponse(response);
+};
+
+export const updateStory = async (storyId, storyData) => {
+    try {
+        // Проверяем, что storyId валидный
+        if (!storyId || isNaN(Number(storyId))) {
+            throw new Error('Неверный ID истории');
+        }
+
+        // Проверяем обязательные поля
+        if (!storyData || !storyData.title || !storyData.content) {
+            throw new Error('Заголовок и содержание обязательны');
+        }
+
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE_URL}/api/stories/${storyId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+                title: String(storyData.title).trim(),
+                content: String(storyData.content).trim(),
+                authorId: Number(storyData.authorId)
+            }),
+        });
+        
+        if (!response.ok) {
+            let errorData = {};
+            try {
+                const text = await response.text();
+                if (text) {
+                    errorData = JSON.parse(text);
+                }
+            } catch (e) {
+                // Если не удалось распарсить JSON, используем текст ответа
+                errorData = { error: `Ошибка сервера: ${response.status}` };
+            }
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json().catch((e) => {
+            console.error('Error parsing response:', e);
+            throw new Error('Не удалось обработать ответ сервера');
+        });
+        
+        return result;
+    } catch (error) {
+        console.error('Update story error:', error);
+        // Пробрасываем ошибку дальше с понятным сообщением
+        if (error.message) {
+            throw error;
+        }
+        throw new Error('Не удалось обновить историю. Проверьте подключение к серверу.');
+    }
 }; 
