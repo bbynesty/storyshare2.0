@@ -16,14 +16,12 @@ import { fetchComments, createComment } from '../api';
 const CommentsSection = ({ storyId }) => {
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState('');
-    const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
     const user = JSON.parse(localStorage.getItem('user') || 'null');
 
     const loadComments = useCallback(async () => {
         try {
-            setLoading(true);
             setError('');
             const data = await fetchComments(storyId);
             console.log('Comments data received:', data);
@@ -43,8 +41,6 @@ const CommentsSection = ({ storyId }) => {
         } catch (err) {
             console.error('Error loading comments:', err);
             setError('Не удалось загрузить комментарии');
-        } finally {
-            setLoading(false);
         }
     }, [storyId]);
 
