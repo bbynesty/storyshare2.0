@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { IconButton, Tooltip } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
@@ -33,7 +33,7 @@ const FavoriteButton = ({ storyId }) => {
     }, [user]);
 
     // Функция для проверки, в избранном ли история
-    const checkFavorite = () => {
+    const checkFavorite = useCallback(() => {
         if (!user || !user.id || !storyId) {
             return false;
         }
@@ -75,11 +75,11 @@ const FavoriteButton = ({ storyId }) => {
             console.error('Error in checkFavorite:', e);
             return false;
         }
-    };
+    }, [user, storyId]);
 
     useEffect(() => {
         setIsFavorite(checkFavorite());
-        
+
         // Слушаем изменения в localStorage и события обновления избранного
         const handleStorageChange = () => {
             setIsFavorite(checkFavorite());
@@ -91,12 +91,12 @@ const FavoriteButton = ({ storyId }) => {
         
         window.addEventListener('storage', handleStorageChange);
         window.addEventListener('favoritesUpdated', handleFavoritesUpdated);
-        
+
         return () => {
             window.removeEventListener('storage', handleStorageChange);
             window.removeEventListener('favoritesUpdated', handleFavoritesUpdated);
         };
-    }, [user, storyId]);
+    }, [user, storyId, checkFavorite]);
 
     const handleToggle = (e) => {
         e.preventDefault();

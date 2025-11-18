@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
-import { AppBar, Toolbar, Typography, Button, Container, ThemeProvider, createTheme, CssBaseline, Box } from '@mui/material';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { AppBar, Toolbar, Typography, Button, ThemeProvider, createTheme, CssBaseline, Box } from '@mui/material';
 import HomePage from './pages/HomePage';
 import StoryPage from './pages/StoryPage';
 import StoriesPage from './pages/StoriesPage';

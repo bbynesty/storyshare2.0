@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Box,
     Typography,
@@ -21,18 +21,7 @@ const CommentsSection = ({ storyId }) => {
     const [error, setError] = useState('');
     const user = JSON.parse(localStorage.getItem('user') || 'null');
 
-    useEffect(() => {
-        if (storyId) {
-            loadComments();
-        }
-    }, [storyId]);
-
-    // Отслеживаем изменения комментариев для отладки
-    useEffect(() => {
-        console.log('Comments updated, count:', comments.length, 'comments:', comments);
-    }, [comments]);
-
-    const loadComments = async () => {
+    const loadComments = useCallback(async () => {
         try {
             setLoading(true);
             setError('');
@@ -57,7 +46,18 @@ const CommentsSection = ({ storyId }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [storyId]);
+
+    useEffect(() => {
+        if (storyId) {
+            loadComments();
+        }
+    }, [storyId, loadComments]);
+
+    // Отслеживаем изменения комментариев для отладки
+    useEffect(() => {
+        console.log('Comments updated, count:', comments.length, 'comments:', comments);
+    }, [comments]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

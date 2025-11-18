@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
     Box, 
@@ -43,43 +43,7 @@ const FavoritesPage = () => {
         return () => clearInterval(interval);
     }, [user]);
 
-    useEffect(() => {
-        // Загружаем избранное при монтировании или смене пользователя
-        if (user) {
-            loadFavorites();
-        } else {
-            setStories([]);
-            setLoading(false);
-        }
-    }, [user]);
-
-    useEffect(() => {
-        // Обновляем при изменении localStorage
-        const handleStorageChange = () => {
-            if (user) {
-                loadFavorites();
-            }
-        };
-        
-        // Обновляем при возврате на страницу
-        const handleFocus = () => {
-            if (user) {
-                loadFavorites();
-            }
-        };
-        
-        window.addEventListener('storage', handleStorageChange);
-        window.addEventListener('favoritesUpdated', handleStorageChange);
-        window.addEventListener('focus', handleFocus);
-        
-        return () => {
-            window.removeEventListener('storage', handleStorageChange);
-            window.removeEventListener('favoritesUpdated', handleStorageChange);
-            window.removeEventListener('focus', handleFocus);
-        };
-    }, [user]);
-
-    const loadFavorites = async () => {
+    const loadFavorites = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
@@ -128,7 +92,43 @@ const FavoritesPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user]);
+
+    useEffect(() => {
+        // Загружаем избранное при монтировании или смене пользователя
+        if (user) {
+            loadFavorites();
+        } else {
+            setStories([]);
+            setLoading(false);
+        }
+    }, [user, loadFavorites]);
+
+    useEffect(() => {
+        // Обновляем при изменении localStorage
+        const handleStorageChange = () => {
+            if (user) {
+                loadFavorites();
+            }
+        };
+        
+        // Обновляем при возврате на страницу
+        const handleFocus = () => {
+            if (user) {
+                loadFavorites();
+            }
+        };
+        
+        window.addEventListener('storage', handleStorageChange);
+        window.addEventListener('favoritesUpdated', handleStorageChange);
+        window.addEventListener('focus', handleFocus);
+        
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('favoritesUpdated', handleStorageChange);
+            window.removeEventListener('focus', handleFocus);
+        };
+    }, [user, loadFavorites]);
 
     if (!user) {
         return (

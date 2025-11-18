@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Button, Container, CircularProgress, Alert } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
 import QuoteCard from '../components/QuoteCard';
 import { fetchRandomQuote } from '../api';
 
@@ -8,7 +7,6 @@ function HomePage() {
     const [quote, setQuote] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const navigate = useNavigate();
 
     const loadQuote = async () => {
         try {

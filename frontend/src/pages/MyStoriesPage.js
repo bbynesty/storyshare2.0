@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
     Box, 
@@ -57,16 +57,7 @@ const MyStoriesPage = () => {
         return () => clearInterval(interval);
     }, [user]);
 
-    useEffect(() => {
-        if (user) {
-            loadStories();
-        } else {
-            setStories([]);
-            setLoading(false);
-        }
-    }, [user]);
-
-    const loadStories = async () => {
+    const loadStories = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
@@ -90,7 +81,16 @@ const MyStoriesPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user]);
+
+    useEffect(() => {
+        if (user) {
+            loadStories();
+        } else {
+            setStories([]);
+            setLoading(false);
+        }
+    }, [user, loadStories]);
 
     const handleEdit = (story) => {
         if (!story || !story.id) {
