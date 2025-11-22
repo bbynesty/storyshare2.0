@@ -1,0 +1,14 @@
+[phases.setup]
+nixPkgs = ["gcc", "cmake", "git"]
+
+[phases.build]
+cmds = [
+  "mkdir -p build",
+  "cd build",
+  "cmake ..",
+  "cmake --build ."
+]
+
+[start]
+cmd = "./build/server"
+
