@@ -15,20 +15,19 @@ RUN apt-get update && apt-get install -y \
 # Установка рабочей директории
 WORKDIR /app
 
-# Копирование файлов проекта (сначала копируем всё, чтобы сохранить структуру)
+# Копирование файлов проекта
 COPY backend/ ./backend/
 
 # Проверяем структуру перед сборкой
 RUN echo "=== Verifying file structure ===" && \
-    echo "1. Checking main crow.h:" && \
-    test -f /app/backend/include/crow.h && echo "   ✓ /app/backend/include/crow.h EXISTS" || echo "   ✗ MISSING" && \
-    echo "2. Checking crow/include/crow.h:" && \
-    test -f /app/backend/include/crow/include/crow.h && echo "   ✓ /app/backend/include/crow/include/crow.h EXISTS" || echo "   ✗ MISSING" && \
-    echo "3. All crow.h files:" && \
-    find /app/backend/include -name "crow.h" -type f && \
-    echo "4. Testing include path resolution:" && \
-    cd /app/backend/include && \
-    test -f crow/include/crow.h && echo "   ✓ Path 'crow/include/crow.h' resolves correctly from include/" || echo "   ✗ Path resolution FAILED"
+    echo "Checking files:" && \
+    ls -la /app/backend/include/ | head -10 && \
+    echo "Checking crow.h:" && \
+    test -f /app/backend/include/crow.h && echo "✓ crow.h exists" || echo "✗ crow.h missing" && \
+    echo "Checking crow/include/crow.h:" && \
+    test -f /app/backend/include/crow/include/crow.h && echo "✓ crow/include/crow.h exists" || echo "✗ crow/include/crow.h missing" && \
+    echo "All crow.h files:" && \
+    find /app/backend/include -name "crow.h" -type f
 
 # Сборка проекта
 WORKDIR /app/backend
