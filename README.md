@@ -46,29 +46,32 @@ npm start
 
 ## Деплой на Vercel
 
-### Настройки для Vercel:
+### 1. Деплой фронтенда:
 
 1. Зайдите на [vercel.com](https://vercel.com)
 2. Войдите через GitHub
 3. Нажмите "Add New Project"
 4. Выберите репозиторий `storyshare2.0`
 5. **Важно!** В настройках проекта укажите:
-   - **Root Directory**: `frontend``
+   - **Root Directory**: `frontend`
    - **Framework Preset**: `Create React App` (или оставьте пустым)
-   - **Build Command**: `npm run build` (или оставьте пустым - Vercel определит автоматически)
-   - **Output Directory**: `build` (или оставьте пустым - Vercel определит автоматически)
-   - **Install Command**: `npm install` (или оставьте пустым)
+   - **Build Command**: оставьте пустым (Vercel определит автоматически)
+   - **Output Directory**: оставьте пустым (Vercel определит автоматически)
 6. Нажмите "Deploy"
 
-### Если Vercel не определяет фреймворк:
+### 2. Настройка переменных окружения (после деплоя бэкенда):
 
-В настройках проекта (Settings → General):
-- **Root Directory**: установите `frontend`
-- **Build Command**: оставьте пустым или укажите `npm run build`
-- **Output Directory**: оставьте пустым или укажите `build`
-- **Install Command**: оставьте пустым или укажите `npm install`
+После того, как задеплоите бэкенд и получите его URL:
 
-Vercel автоматически определит Create React App, если `package.json` находится в корневой директории проекта (в нашем случае это `frontend/`).
+1. В Vercel откройте ваш проект
+2. Перейдите в **Settings** → **Environment Variables**
+3. Добавьте новую переменную:
+   - **Name**: `REACT_APP_API_URL`
+   - **Value**: URL вашего бэкенда (например, `https://your-backend.herokuapp.com`)
+4. Нажмите **Save**
+5. Перейдите в **Deployments** → выберите последний деплой → **Redeploy** (чтобы применить переменные)
+
+**Важно:** После добавления переменной окружения нужно передеплоить проект!
 
 ## Деплой бэкенда (C++)
 
