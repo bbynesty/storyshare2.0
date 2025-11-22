@@ -19,8 +19,14 @@ WORKDIR /app
 COPY backend/ ./backend/
 
 # Проверяем структуру (для отладки)
-RUN ls -la /app/backend/include/ || true
-RUN ls -la /app/backend/include/crow/ || true
+RUN echo "=== Checking include structure ===" && \
+    ls -la /app/backend/include/ && \
+    echo "=== Checking crow directory ===" && \
+    ls -la /app/backend/include/crow/ | head -10 && \
+    echo "=== Checking crow/include ===" && \
+    ls -la /app/backend/include/crow/include/ | head -10 && \
+    echo "=== Checking crow/include/crow.h ===" && \
+    test -f /app/backend/include/crow/include/crow.h && echo "crow.h found!" || echo "crow.h NOT found!"
 
 # Сборка проекта
 WORKDIR /app/backend
