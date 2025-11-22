@@ -21,6 +21,7 @@ if(UNIX AND NOT APPLE)
     target_include_directories(crow INTERFACE
         ${CMAKE_SOURCE_DIR}/include
         ${CMAKE_SOURCE_DIR}/include/crow/include
+        ${CMAKE_SOURCE_DIR}/include/crow
         ${Boost_INCLUDE_DIRS}
         ${OPENSSL_INCLUDE_DIR}
     )

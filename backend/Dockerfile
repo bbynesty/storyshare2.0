@@ -15,8 +15,12 @@ RUN apt-get update && apt-get install -y \
 # Установка рабочей директории
 WORKDIR /app
 
-# Копирование файлов проекта
+# Копирование файлов проекта (сначала копируем всё, чтобы сохранить структуру)
 COPY backend/ ./backend/
+
+# Проверяем структуру (для отладки)
+RUN ls -la /app/backend/include/ || true
+RUN ls -la /app/backend/include/crow/ || true
 
 # Сборка проекта
 WORKDIR /app/backend
