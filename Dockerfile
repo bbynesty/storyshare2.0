@@ -12,40 +12,31 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# Установка переменных окружения для компилятора
 ENV CC=/usr/bin/gcc
 ENV CXX=/usr/bin/g++
 
-# Рабочая директория
 WORKDIR /app
 
 # Копирование файлов бэкенда
 COPY backend/ ./backend/
 
-# Установка Crow Framework в правильную структуру
-# CMakeLists.txt ожидает: backend/include/crow/include/crow.h
-RUN git clone https://github.com/CrowCpp/Crow.git /tmp/crow && \
-    cd /tmp/crow && \
-    git checkout v1.0+5 && \
-    rm -rf /app/backend/include/crow && \
-    mkdir -p /app/backend/include/crow && \
-    cp -r include /app/backend/include/crow/ && \
-    echo "Crow installed. Structure:" && \
-    ls -la /app/backend/include/crow/include/ | head -10
+# Установка Crow Framework
+RUN git clone https://github.com/CrowCpp/Crow.git /tmp/crow
+RUN cd /tmp/crow && git checkout v1.0+5
+RUN rm -rf /app/backend/include/crow
+RUN mkdir -p /app/backend/include/crow
+RUN cp -r /tmp/crow/include /app/backend/include/crow/
+RUN ls -la /app/backend/include/crow/include/ || true
 
 # Сборка проекта
 WORKDIR /app/backend
-RUN mkdir -p build && \
-    cd build && \
-    cmake -DCMAKE_BUILD_TYPE=Release .. && \
-    cmake --build . -j$(nproc) && \
-    echo "=== Build completed ===" && \
-    ls -lh server && \
-    test -f server && echo "✓ Executable found" || echo "✗ Executable NOT found"
+RUN mkdir -p build
+WORKDIR /app/backend/build
+RUN cmake -DCMAKE_BUILD_TYPE=Release ..
+RUN cmake --build . -j$(nproc)
+RUN test -f server && echo "Executable found" || (echo "Executable NOT found" && ls -la)
 
-# Открытие порта
 EXPOSE 8080
 
-# Запуск сервера
 WORKDIR /app/backend/build
 CMD ["./server"]
