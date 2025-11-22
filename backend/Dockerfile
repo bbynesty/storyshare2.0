@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     libboost-system-dev \
     libboost-filesystem-dev \
     libssl-dev \
+    pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 # Установка рабочей директории
@@ -16,7 +17,6 @@ WORKDIR /app
 
 # Копирование файлов проекта
 COPY backend/ ./backend/
-COPY .gitmodules ./
 
 # Сборка проекта
 WORKDIR /app/backend
@@ -26,7 +26,7 @@ RUN mkdir -p build && \
     cmake --build . --config Release
 
 # Открываем порт (Railway использует переменную PORT)
-EXPOSE $PORT
+EXPOSE 8080
 
 # Запуск сервера
 WORKDIR /app/backend/build

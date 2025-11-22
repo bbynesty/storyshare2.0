@@ -1,14 +1,15 @@
 [phases.setup]
-nixPkgs = ["gcc", "cmake", "git"]
+nixPkgs = ["gcc", "cmake", "git", "boost", "openssl", "pkg-config"]
 
 [phases.build]
 cmds = [
+  "cd backend",
   "mkdir -p build",
   "cd build",
-  "cmake ..",
-  "cmake --build ."
+  "cmake .. -DCMAKE_BUILD_TYPE=Release",
+  "cmake --build . --config Release"
 ]
 
 [start]
-cmd = "./build/server"
+cmd = "cd backend/build && ./server"
 
