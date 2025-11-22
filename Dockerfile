@@ -24,13 +24,14 @@ COPY backend/ ./backend/
 
 # Установка Crow Framework в правильную структуру
 # CMakeLists.txt ожидает: backend/include/crow/include/crow.h
-RUN mkdir -p backend/include/crow && \
-    git clone https://github.com/CrowCpp/Crow.git /tmp/crow && \
+RUN git clone https://github.com/CrowCpp/Crow.git /tmp/crow && \
     cd /tmp/crow && \
     git checkout v1.0+5 && \
-    cp -r include backend/include/crow/ && \
+    mkdir -p /app/backend/include/crow && \
+    cp -r include /app/backend/include/crow/ && \
     echo "Crow structure:" && \
-    find backend/include/crow -name "*.h" | head -5
+    ls -la /app/backend/include/crow/ && \
+    find /app/backend/include/crow -name "*.h" | head -5
 
 # Сборка проекта
 WORKDIR /app/backend
