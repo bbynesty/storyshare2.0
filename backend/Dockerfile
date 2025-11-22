@@ -18,13 +18,14 @@ WORKDIR /app
 # Копирование файлов проекта (сначала копируем всё, чтобы сохранить структуру)
 COPY backend/ ./backend/
 
-# Проверяем структуру (для отладки)
-RUN echo "=== Checking include structure ===" && \
-    ls -la /app/backend/include/ && \
-    echo "=== Checking crow/include/crow.h ===" && \
-    test -f /app/backend/include/crow/include/crow.h && echo "✓ crow.h found!" || echo "✗ crow.h NOT found!" && \
-    echo "=== File structure ===" && \
-    find /app/backend/include -name "crow.h" -type f
+# Проверяем структуру перед сборкой
+RUN echo "=== Verifying file structure ===" && \
+    echo "Checking if crow.h exists:" && \
+    test -f /app/backend/include/crow/include/crow.h && echo "✓ /app/backend/include/crow/include/crow.h EXISTS" || echo "✗ /app/backend/include/crow/include/crow.h MISSING" && \
+    echo "All crow.h files:" && \
+    find /app/backend/include -name "crow.h" -type f && \
+    echo "Directory structure:" && \
+    ls -R /app/backend/include/crow/include/ | head -20
 
 # Сборка проекта
 WORKDIR /app/backend
