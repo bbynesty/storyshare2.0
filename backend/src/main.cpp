@@ -20,6 +20,7 @@
 #include <sstream>
 #include <memory>
 #include <map>
+#include <cstdlib>
 
 // Глобальные сервисы
 std::unique_ptr<StoryService> storyService;
@@ -797,7 +798,13 @@ int main() {
         });
 
         // Запуск сервера
-        app.port(8080).multithreaded().run();
+        // Используем переменную окружения PORT для Railway, иначе 8080
+        int port = 8080;
+        const char* port_env = std::getenv("PORT");
+        if (port_env != nullptr) {
+            port = std::atoi(port_env);
+        }
+        app.port(port).multithreaded().run();
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;
