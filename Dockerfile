@@ -28,9 +28,13 @@ RUN mkdir -p backend/include/crow && \
     git clone https://github.com/CrowCpp/Crow.git /tmp/crow && \
     cd /tmp/crow && \
     git checkout v1.0+5 && \
-    cp -r include/* /app/backend/include/crow/ && \
+    if [ -d "include/crow" ]; then \
+        cp -r include/crow/* /app/backend/include/crow/; \
+    else \
+        cp -r include/* /app/backend/include/crow/; \
+    fi && \
     echo "Crow installed to backend/include/crow/" && \
-    ls -la /app/backend/include/crow/ | head -10
+    find /app/backend/include/crow -name "*.h" | head -5
 
 # Сборка проекта
 # На Linux не используется флаг --config, только на Windows
