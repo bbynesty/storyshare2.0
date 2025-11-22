@@ -1,11 +1,23 @@
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
 async function handleResponse(response) {
     if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        try {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        } catch (err) {
+            if (err instanceof Error && err.message.includes('HTTP error')) {
+                throw err;
+            }
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
     }
-    return response.json();
+    try {
+        return await response.json();
+    } catch (err) {
+        // Если ответ не JSON, возвращаем пустой объект
+        return {};
+    }
 }
 
 export async function login(credentials) {
