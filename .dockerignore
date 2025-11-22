@@ -1,0 +1,13 @@
+# Игнорируемые файлы для Docker
+frontend/
+node_modules/
+.git/
+.gitignore
+README.md
+*.md
+.vscode/
+.idea/
+*.log
+backend/build/
+backend/.vscode/
+

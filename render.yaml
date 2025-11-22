@@ -1,0 +1,34 @@
+# Конфигурация для автоматического деплоя на Render
+# Этот файл позволяет деплоить оба сервиса одновременно
+
+services:
+  # Бэкенд (C++ сервер)
+  - type: web
+    name: storyshare-backend
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: CROW_ENABLE_LOGGING
+        value: "true"
+    healthCheckPath: /health
+
+  # Фронтенд (React приложение)
+  - type: web
+    name: storyshare-frontend
+    env: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/build
+    envVars:
+      - key: REACT_APP_API_URL
+        # Это значение нужно будет обновить после деплоя бэкенда
+        # Замените на URL вашего бэкенда, например: https://storyshare-backend.onrender.com
+        value: https://storyshare-backend.onrender.com
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
