@@ -27,11 +27,11 @@ COPY backend/ ./backend/
 RUN git clone https://github.com/CrowCpp/Crow.git /tmp/crow && \
     cd /tmp/crow && \
     git checkout v1.0+5 && \
+    rm -rf /app/backend/include/crow && \
     mkdir -p /app/backend/include/crow && \
     cp -r include /app/backend/include/crow/ && \
-    echo "Crow structure:" && \
-    ls -la /app/backend/include/crow/ && \
-    find /app/backend/include/crow -name "*.h" | head -5
+    echo "Crow installed. Structure:" && \
+    ls -la /app/backend/include/crow/include/ | head -10
 
 # Сборка проекта
 WORKDIR /app/backend
