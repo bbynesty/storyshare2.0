@@ -1,0 +1,58 @@
+# Альтернативный Dockerfile для C++ бэкенда на Render
+# Использует более простой подход к установке Crow
+
+FROM ubuntu:22.04
+
+# Установка зависимостей
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    git \
+    libboost-all-dev \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+# Установка переменных окружения для компилятора
+ENV CC=/usr/bin/gcc
+ENV CXX=/usr/bin/g++
+
+# Рабочая директория
+WORKDIR /app
+
+# Копирование файлов бэкенда
+COPY backend/ ./backend/
+
+# Установка Crow Framework прямо в проект (если используется как submodule или локально)
+# Или установка в систему перед сборкой
+RUN if [ ! -d "backend/crow" ] && [ ! -f "backend/include/crow.h" ]; then \
+        echo "Installing Crow Framework..." && \
+        git clone https://github.com/CrowCpp/Crow.git /tmp/crow && \
+        cd /tmp/crow && \
+        git checkout v1.0+5 && \
+        mkdir -p /usr/local/include && \
+        if [ -d "include/crow" ]; then \
+            cp -r include/crow /usr/local/include/; \
+        elif [ -d "include" ]; then \
+            mkdir -p /usr/local/include/crow && \
+            find include -name "*.h" -exec cp {} /usr/local/include/crow/ \; 2>/dev/null || true; \
+        fi && \
+        echo "Crow installed to /usr/local/include/crow" && \
+        ls -la /usr/local/include/crow/ || echo "Warning: Crow installation check failed"; \
+    else \
+        echo "Crow already present in project"; \
+    fi
+
+# Сборка проекта
+RUN mkdir -p backend/build && \
+    cd backend/build && \
+    echo "=== CMake Configuration ===" && \
+    cmake -DCMAKE_BUILD_TYPE=Release .. && \
+    echo "=== Building Project ===" && \
+    cmake --build . -- -j$(nproc)
+
+# Открытие порта
+EXPOSE 8080
+
+# Запуск сервера
+CMD cd backend/build && PORT=${PORT:-8080} ./server
+
