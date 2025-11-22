@@ -22,38 +22,29 @@ WORKDIR /app
 # Копирование файлов бэкенда
 COPY backend/ ./backend/
 
-# Установка Crow Framework в правильное место
-# CMakeLists.txt ожидает Crow в backend/include/crow/include/
+# Установка Crow Framework в правильную структуру
+# CMakeLists.txt ожидает: backend/include/crow/include/crow.h
 RUN mkdir -p backend/include/crow && \
     git clone https://github.com/CrowCpp/Crow.git /tmp/crow && \
     cd /tmp/crow && \
     git checkout v1.0+5 && \
-    if [ -d "include/crow" ]; then \
-        cp -r include/crow/* /app/backend/include/crow/; \
-    else \
-        cp -r include/* /app/backend/include/crow/; \
-    fi && \
-    echo "Crow installed to backend/include/crow/" && \
-    find /app/backend/include/crow -name "*.h" | head -5
+    cp -r include backend/include/crow/ && \
+    echo "Crow structure:" && \
+    find backend/include/crow -name "*.h" | head -5
 
 # Сборка проекта
-# На Linux не используется флаг --config, только на Windows
 WORKDIR /app/backend
 RUN mkdir -p build && \
     cd build && \
-    echo "=== Running CMake ===" && \
     cmake -DCMAKE_BUILD_TYPE=Release .. && \
-    echo "=== Building project ===" && \
-    cmake --build . -- -j$(nproc) && \
-    echo "=== Checking for executable ===" && \
-    ls -la server && \
-    file server
+    cmake --build . -j$(nproc) && \
+    echo "=== Build completed ===" && \
+    ls -lh server && \
+    test -f server && echo "✓ Executable found" || echo "✗ Executable NOT found"
 
-# Открытие порта (Render использует переменную PORT)
+# Открытие порта
 EXPOSE 8080
 
 # Запуск сервера
-# Исполняемый файл должен быть в backend/build/server
 WORKDIR /app/backend/build
-CMD PORT=${PORT:-8080} ./server
-
+CMD ["./server"]
