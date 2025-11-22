@@ -1,4 +1,4 @@
-# Dockerfile для C++ бэкенда на Render
+# Используем официальный образ с C++ и CMake
 FROM ubuntu:22.04
 
 # Установка зависимостей
@@ -12,31 +12,33 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-ENV CC=/usr/bin/gcc
-ENV CXX=/usr/bin/g++
-
+# Установка рабочей директории
 WORKDIR /app
 
-# Копирование файлов бэкенда
+# Копирование файлов проекта
 COPY backend/ ./backend/
 
-# Установка Crow Framework
-RUN git clone https://github.com/CrowCpp/Crow.git /tmp/crow
-RUN cd /tmp/crow && git checkout v1.0+5
-RUN rm -rf /app/backend/include/crow
-RUN mkdir -p /app/backend/include/crow
-RUN cp -r /tmp/crow/include /app/backend/include/crow/
-RUN ls -la /app/backend/include/crow/include/ || true
+# Проверяем структуру перед сборкой
+RUN echo "=== Verifying file structure ===" && \
+    echo "Checking files:" && \
+    ls -la /app/backend/include/ | head -10 && \
+    echo "Checking crow.h:" && \
+    test -f /app/backend/include/crow.h && echo "✓ crow.h exists" || echo "✗ crow.h missing" && \
+    echo "Checking crow/include/crow.h:" && \
+    test -f /app/backend/include/crow/include/crow.h && echo "✓ crow/include/crow.h exists" || echo "✗ crow/include/crow.h missing" && \
+    echo "All crow.h files:" && \
+    find /app/backend/include -name "crow.h" -type f
 
 # Сборка проекта
 WORKDIR /app/backend
-RUN mkdir -p build
-WORKDIR /app/backend/build
-RUN cmake -DCMAKE_BUILD_TYPE=Release ..
-RUN cmake --build . -j$(nproc)
-RUN test -f server && echo "Executable found" || (echo "Executable NOT found" && ls -la)
+RUN mkdir -p build && \
+    cd build && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release && \
+    cmake --build . --config Release
 
+# Открываем порт (Railway использует переменную PORT)
 EXPOSE 8080
 
+# Запуск сервера
 WORKDIR /app/backend/build
 CMD ["./server"]

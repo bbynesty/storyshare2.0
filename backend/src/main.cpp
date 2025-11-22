@@ -168,10 +168,20 @@ Story getRandomQuote() {
 // Middleware для CORS
 struct CORSMiddleware {
     struct context {};
+    
+    // Получаем CORS origin из переменной окружения или используем * для всех
+    std::string getCorsOrigin() {
+        const char* cors_origin = std::getenv("CORS_ORIGIN");
+        if (cors_origin != nullptr && strlen(cors_origin) > 0) {
+            return std::string(cors_origin);
+        }
+        // По умолчанию разрешаем все домены (для работы с Vercel и другими)
+        return "*";
+    }
 
     void before_handle(crow::request& req, crow::response& res, context& ctx) {
         // Устанавливаем CORS заголовки для всех запросов
-        res.set_header("Access-Control-Allow-Origin", "http://localhost:3000");
+        res.set_header("Access-Control-Allow-Origin", getCorsOrigin());
         res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
         res.set_header("Access-Control-Max-Age", "86400");
@@ -189,7 +199,7 @@ struct CORSMiddleware {
         if (!res.get_header_value("Access-Control-Allow-Origin").empty()) {
             return;
         }
-        res.set_header("Access-Control-Allow-Origin", "http://localhost:3000");
+        res.set_header("Access-Control-Allow-Origin", getCorsOrigin());
         res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
     }
