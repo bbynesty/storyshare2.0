@@ -47,9 +47,11 @@ if(UNIX AND NOT APPLE)
     add_executable(server ${SOURCES})
     
     # Настройка путей включения для сервера
+    # Важно: include директория должна быть первой, чтобы crow.h мог найти crow/include/crow.h
     target_include_directories(server PRIVATE
         ${CMAKE_SOURCE_DIR}/include
         ${CMAKE_SOURCE_DIR}/include/crow/include
+        ${CMAKE_SOURCE_DIR}/include/crow/include/crow
         ${Boost_INCLUDE_DIRS}
         ${OPENSSL_INCLUDE_DIR}
     )
