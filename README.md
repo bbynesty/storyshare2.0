@@ -44,85 +44,33 @@ npm start
 
 Сайт будет доступен на `http://localhost:3000`, сервер на `http://localhost:8080`
 
-## Деплой на GitHub
+## Деплой на Vercel
 
-### 1. Создание репозитория на GitHub
+### Настройки для Vercel:
 
-1. Зайдите на [GitHub.com](https://github.com)
-2. Нажмите "New repository"
-3. Назовите репозиторий (например, `storyshare`)
-4. Выберите Public или Private
-5. НЕ добавляйте README, .gitignore или лицензию (они уже есть)
-6. Нажмите "Create repository"
-
-### 2. Загрузка кода на GitHub
-
-```bash
-# В папке проекта (C:\Users\DAB\mysite)
-git init
-git add .
-git commit -m "Initial commit: StoryShare project"
-git branch -M main
-git remote add origin https://github.com/ВАШ_НИКНЕЙМ/НАЗВАНИЕ_РЕПОЗИТОРИЯ.git
-git push -u origin main
-```
-
-### 3. Деплой фронтенда (React)
-
-#### Вариант 1: Netlify (рекомендуется)
-1. Зайдите на [Netlify.com](https://netlify.com)
+1. Зайдите на [vercel.com](https://vercel.com)
 2. Войдите через GitHub
-3. Нажмите "Add new site" → "Import an existing project"
-4. Выберите ваш репозиторий
-5. Настройки:
-   - **Base directory**: `frontend`
-   - **Build command**: `npm run build`
-   - **Publish directory**: `frontend/build`
-6. Нажмите "Deploy site"
-7. После деплоя измените `API_BASE_URL` в `frontend/src/api.js` на URL вашего бэкенда
+3. Нажмите "Add New Project"
+4. Выберите репозиторий `storyshare2.0`
+5. **Важно!** В настройках проекта укажите:
+   - **Root Directory**: `frontend``
+   - **Framework Preset**: `Create React App` (или оставьте пустым)
+   - **Build Command**: `npm run build` (или оставьте пустым - Vercel определит автоматически)
+   - **Output Directory**: `build` (или оставьте пустым - Vercel определит автоматически)
+   - **Install Command**: `npm install` (или оставьте пустым)
+6. Нажмите "Deploy"
 
-#### Вариант 2: Vercel
-1. Зайдите на [Vercel.com](https://vercel.com)
-2. Войдите через GitHub
-3. Импортируйте репозиторий
-4. Настройки:
-   - **Root Directory**: `frontend`
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `build`
-5. Нажмите "Deploy"
+### Если Vercel не определяет фреймворк:
 
-#### Вариант 3: GitHub Pages
-1. В настройках репозитория → Pages
-2. Source: GitHub Actions
-3. Создайте файл `.github/workflows/deploy.yml`:
+В настройках проекта (Settings → General):
+- **Root Directory**: установите `frontend`
+- **Build Command**: оставьте пустым или укажите `npm run build`
+- **Output Directory**: оставьте пустым или укажите `build`
+- **Install Command**: оставьте пустым или укажите `npm install`
 
-```yaml
-name: Deploy to GitHub Pages
-on:
-  push:
-    branches: [ main ]
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Setup Node
-        uses: actions/setup-node@v2
-        with:
-          node-version: '18'
-      - name: Install and Build
-        run: |
-          cd frontend
-          npm install
-          npm run build
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./frontend/build
-```
+Vercel автоматически определит Create React App, если `package.json` находится в корневой директории проекта (в нашем случае это `frontend/`).
 
-### 4. Деплой бэкенда (C++)
+## Деплой бэкенда (C++)
 
 C++ бэкенд сложнее деплоить. Варианты:
 
@@ -154,7 +102,7 @@ git push heroku main
 
 ⚠️ **CORS настройки** - после деплоя измените CORS в `backend/src/main.cpp` на URL вашего фронтенда
 
-⚠️ **API URL** - после деплоя измените `API_BASE_URL` в `frontend/src/api.js` на URL вашего бэкенда
+⚠️ **API URL** - после деплоя фронтенда и бэкенда добавьте переменную окружения `REACT_APP_API_URL` в Vercel с URL вашего бэкенда
 
 ## Функционал
 - ✅ Регистрация и вход пользователей
@@ -165,4 +113,4 @@ git push heroku main
 - ✅ Случайные цитаты
 
 ## Авторы
-Ксения Калугина, Лейла Аббасова, Анастасия Гришанина 
+Ксения Калугина, Лейла Аббасова, Анастасия Гришанина
