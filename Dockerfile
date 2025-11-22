@@ -6,7 +6,9 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
     git \
-    libboost-all-dev \
+    libboost-system-dev \
+    libboost-filesystem-dev \
+    libssl-dev \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
@@ -14,44 +16,40 @@ RUN apt-get update && apt-get install -y \
 ENV CC=/usr/bin/gcc
 ENV CXX=/usr/bin/g++
 
-# Установка Crow Framework
-# Клонируем репозиторий и устанавливаем заголовочные файлы
-RUN git clone https://github.com/CrowCpp/Crow.git /tmp/crow && \
-    cd /tmp/crow && \
-    git checkout v1.0+5 && \
-    mkdir -p /usr/local/include && \
-    if [ -d "include/crow" ]; then \
-        cp -r include/crow /usr/local/include/; \
-    else \
-        mkdir -p /usr/local/include/crow && \
-        cp include/*.h /usr/local/include/crow/ 2>/dev/null || true; \
-    fi && \
-    ls -la /usr/local/include/crow/ || echo "Crow headers installed"
-
 # Рабочая директория
 WORKDIR /app
 
 # Копирование файлов бэкенда
 COPY backend/ ./backend/
 
+# Установка Crow Framework в правильное место
+# CMakeLists.txt ожидает Crow в backend/include/crow/include/
+RUN mkdir -p backend/include/crow && \
+    git clone https://github.com/CrowCpp/Crow.git /tmp/crow && \
+    cd /tmp/crow && \
+    git checkout v1.0+5 && \
+    cp -r include/* /app/backend/include/crow/ && \
+    echo "Crow installed to backend/include/crow/" && \
+    ls -la /app/backend/include/crow/ | head -10
+
 # Сборка проекта
 # На Linux не используется флаг --config, только на Windows
-# Добавляем вывод для отладки
-RUN mkdir -p backend/build && \
-    cd backend/build && \
-    echo "Checking Crow installation..." && \
-    ls -la /usr/local/include/crow/ || echo "Crow not found in expected location" && \
-    echo "Running CMake..." && \
-    cmake -DCMAKE_BUILD_TYPE=Release .. 2>&1 | head -50 && \
-    echo "Building project..." && \
-    cmake --build . -- -j$(nproc) 2>&1 | tail -50
+WORKDIR /app/backend
+RUN mkdir -p build && \
+    cd build && \
+    echo "=== Running CMake ===" && \
+    cmake -DCMAKE_BUILD_TYPE=Release .. && \
+    echo "=== Building project ===" && \
+    cmake --build . -- -j$(nproc) && \
+    echo "=== Checking for executable ===" && \
+    ls -la server && \
+    file server
 
 # Открытие порта (Render использует переменную PORT)
-# Используем переменную PORT или 8080 по умолчанию
 EXPOSE 8080
 
 # Запуск сервера
-# Render автоматически устанавливает переменную PORT через окружение
-# Убедитесь, что ваш сервер читает PORT из переменных окружения
-CMD cd backend/build && PORT=${PORT:-8080} ./server
+# Исполняемый файл должен быть в backend/build/server
+WORKDIR /app/backend/build
+CMD PORT=${PORT:-8080} ./server
 
