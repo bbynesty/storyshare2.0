@@ -52,6 +52,11 @@ RUN mkdir -p build && \
 # Открываем порт (Railway использует переменную PORT)
 EXPOSE 8080
 
+# Проверяем что файл существует после сборки
+RUN echo "=== Checking built executable ===" && \
+    ls -la /app/backend/build/ && \
+    find /app/backend -name "server" -type f
+
 # Запуск сервера
 WORKDIR /app/backend/build
 CMD ["./server"]
