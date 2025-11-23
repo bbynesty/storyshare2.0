@@ -1,6 +1,7 @@
 #define _WIN32_WINNT 0x0601
 #include "crow_config.h"
-#include "crow.h"
+// Прямое включение crow.h из crow/include
+#include "crow/include/crow.h"
 #include "models/Story.h"
 #include "models/User.h"
 #include "models/Comment.h"
