@@ -20,14 +20,16 @@ COPY backend/ ./backend/
 
 # Проверяем структуру перед сборкой
 RUN echo "=== Verifying file structure ===" && \
-    echo "Checking files:" && \
-    ls -la /app/backend/include/ | head -10 && \
-    echo "Checking crow.h:" && \
-    test -f /app/backend/include/crow.h && echo "✓ crow.h exists" || echo "✗ crow.h missing" && \
-    echo "Checking crow/include/crow.h:" && \
-    test -f /app/backend/include/crow/include/crow.h && echo "✓ crow/include/crow.h exists" || echo "✗ crow/include/crow.h missing" && \
-    echo "All crow.h files:" && \
-    find /app/backend/include -name "crow.h" -type f
+    echo "Checking include directory:" && \
+    ls -la /app/backend/include/ && \
+    echo "Checking crow directory:" && \
+    ls -la /app/backend/include/crow/ | head -5 && \
+    echo "Checking crow/include directory:" && \
+    ls -la /app/backend/include/crow/include/ | head -5 && \
+    echo "Checking crow.h files:" && \
+    find /app/backend/include -name "crow.h" -type f && \
+    echo "Testing include path:" && \
+    test -f /app/backend/include/crow/include/crow.h && echo "✓ crow/include/crow.h exists" || echo "✗ crow/include/crow.h MISSING"
 
 # Сборка проекта
 WORKDIR /app/backend
