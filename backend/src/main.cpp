@@ -1,7 +1,9 @@
 #define _WIN32_WINNT 0x0601
 #include "crow_config.h"
-// Используем просто crow.h когда include/crow/include в путях
+// Включаем Crow через обертку - она должна включить все нужные заголовки
 #include "crow.h"
+// Используем using namespace для упрощения
+using namespace crow;
 #include "models/Story.h"
 #include "models/User.h"
 #include "models/Comment.h"
