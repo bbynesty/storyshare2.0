@@ -3,7 +3,6 @@
 // Включаем конфигурацию
 #include "crow_config.h"
 
-// Включаем основной заголовочный файл Crow
-// Файл находится в: backend/include/crow/include/crow.h
-// Когда include директория добавлена в пути, путь относительно include: crow/include/crow.h
-#include "crow/include/crow.h"
+// Включаем основной заголовочный файл Crow напрямую
+// Используем путь относительно crow/include, который уже в include directories
+#include "../crow/include/crow.h"
