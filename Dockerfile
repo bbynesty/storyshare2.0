@@ -18,17 +18,16 @@ WORKDIR /app
 # Копирование файлов проекта
 COPY backend/ ./backend/
 
-# Устанавливаем Crow Framework если его нет
-RUN if [ ! -d "/app/backend/include/crow/include" ]; then \
-        echo "Crow framework not found, cloning..." && \
-        rm -rf /app/backend/include/crow && \
-        mkdir -p /tmp && \
-        cd /tmp && \
-        git clone --depth 1 --branch v1.0+5 https://github.com/CrowCpp/Crow.git && \
-        mkdir -p /app/backend/include/crow && \
-        cp -r /tmp/Crow/include /app/backend/include/crow/ && \
-        rm -rf /tmp/Crow; \
-    fi
+# Всегда используем последнюю версию Crow с поддержкой io_context
+RUN echo "Installing latest Crow framework..." && \
+    rm -rf /app/backend/include/crow && \
+    mkdir -p /tmp && \
+    cd /tmp && \
+    git clone --depth 1 https://github.com/CrowCpp/Crow.git && \
+    mkdir -p /app/backend/include/crow && \
+    cp -r /tmp/Crow/include /app/backend/include/crow/ && \
+    rm -rf /tmp/Crow && \
+    echo "Crow framework installed successfully"
 
 # Проверяем структуру перед сборкой
 RUN echo "=== Verifying file structure ===" && \
