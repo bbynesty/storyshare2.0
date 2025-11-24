@@ -1,4 +1,9 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+// Убираем слеш в конце URL, если он есть
+const getApiBaseUrl = () => {
+    const url = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+    return url.endsWith('/') ? url.slice(0, -1) : url;
+};
+const API_BASE_URL = getApiBaseUrl();
 
 async function handleResponse(response) {
     if (!response.ok) {
